@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>流水线</title>
+    <style>
+      *{
+        box-sizing: border-box;
+      }
+      h1,h2,h3,h4,h5,h6,p{ 
+        margin: 0;
+      }
+      body,html{
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      .path{
+        -webkit-animation: go .5s ease-in-out forwards;
+      }
+      @-webkit-keyframes go {
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+      .box-active{
+        -webkit-animation: scale-down-ver-center 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) .5s 1 normal both
+      }
+      @-webkit-keyframes scale-down-ver-center{
+        0%{
+          transform: scaleY(0);
+        }
+        100%{
+          transform: scaleY(1);
+        }
+      }
+      #app, #china-map{
+        width: 100%;
+        height: 100%;
+      }
+      .box{
+        position: absolute;
+        background: url('./images/box-bg.png');
+        background-size: 100% 100%;
+        font-family: Microsoft YaHei;
+        border: 1px solid #51aabd;
+        transform: scale(0);
+      }
+      .box-left:before{
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        margin-left: -5px;
+        margin-top: -5px;
+        background: #00d2ff;
+        border-radius: 50%;
+      }
+      .box-right:before{
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        margin-right: -5px;
+        margin-top: -5px;
+        background: #00d2ff;
+        border-radius: 50%;
+      }
+
+      .bottom-arrow:before{
+        content: url('./images/bottom-arrow.png');
+        position: absolute;
+        bottom: -13px;
+        left: 50%;
+        margin-left: -11px;
+      }
+      
+      .tooltip{
+        position: absolute;
+        transform: scale(1);
+      }
+      .box-header{
+        padding: 5px 0;
+        font-size: 20px;
+        color: rgb(131, 232, 253);
+        text-align: center;
+        border-bottom: 1px solid #51aabd;
+      }
+      .box-header:before{
+        content: url('./images/border-up.png');
+        position: absolute;
+        top: -5px;
+        right: -3px;
+      }
+      .box-header:after{
+        content: url('./images/border-bottom.png');
+        position: absolute;
+        bottom: -8px;
+        left: -3px;
+      }
+      .box-single-title{
+        font-size: 20px;
+        color: rgb(131, 237, 253);
+        padding: 12px 10px;
+        border: 0;
+        text-align: left;
+      }
+      .box-single-title span{
+        padding-left: 5px;
+      }
+      .box-single-title span,.box-single-title img{
+        display: inline-block;
+        vertical-align: top;
+      }
+      .box-single-item{
+        float: left;
+        width: 50%;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .box-single-item label{
+        font-size: 26px;
+        color: rgb(31, 164, 182);
+      }
+      .box-single-item span{
+        font-size: 10px;
+        color: #FFF;
+      }
+      .box-table-content-title{
+        float: left;
+        width: 90px;
+        height: 36px;
+        line-height: 36px;
+        padding: 0 8px;
+        text-align: center;
+        font-size: 10px;
+        color: #FFF;
+      }
+      .box-table-item-text:nth-child(3n){
+        background: none;
+      }
+      .box-table-item-text{
+        float: left;
+        width: 33.2%;
+        padding: 10px 0px;
+        text-align: center;
+        color: rgb(145, 220, 230);
+        font-size: 22px;
+        background: url(./images/dashed.png);
+        background-position: center right;
+        background-repeat-x: no-repeat;
+      }
+      .box-table-content-main{
+        padding-bottom: 20px;
+      }
+      .full-width{
+        width: 100% !important;
+      }
+      .resourceCount{
+        padding: 5px 15px;
+        left: 50%;
+        bottom: 0;
+        color: #fff;
+        transform: translate(-50%,0) scale(1);
+        border: 0;
+      }
+      .resourceCount-item{
+        display: inline-block;
+        margin-right: 10px;
+        /*background: url('./images/dashed.png');
+        background-repeat-x: no-repeat;
+        background-position: right center;*/
+      }
+      .resource-text{
+        font-size: 26px;
+        color: rgb(31, 164, 182);
+      }
+      .resource-label{
+        font-size: 10px;
+        color: #FFF;
+      }
+      .resource-title{
+        font-size: 20px;
+        color: rgb(131, 232, 253);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box resourceCount">
+      <div class="resourceCount-item">
+        <span class="resource-title">云CI</span>
+        <span class="resource-label">总资源(核)</span>
+        <label class="resource-text">6168</label>
+        <span class="resource-label">总上线项目数</span>
+        <label class="resource-text">196</label>
+      </div>
+      <div class="resourceCount-item">
+        <span class="resource-title" style="color: #ddb926">云测试</span>
+        <span class="resource-label">总资源(核)</span>
+        <label class="resource-text">380</label>
+        <span class="resource-label">总上线项目数</span>
+        <label class="resource-text">3</label>
+      </div>
+    </div>
+    <div id="china-map"></div>
+    <div class="box box-right" style="left: 100px; top: 100px;" id="xian">
+      <div class="box-header">西安云CI</div>
+      <div class="box-content">
+        <div class="box-table">
+          <div class="box-table-content">
+            <div class="box-table-content-header">
+              <div class="box-table-content-title">资源(核)</div>
+              <div class="box-table-content-title">资源利用率</div>
+              <div class="box-table-content-title">已上线项目数</div>
+            </div>
+            <div class="box-table-content-main">
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">848</div>
+                <div class="box-table-item-text">94.3%</div>
+                <div class="box-table-item-text">3</div>
+              </div>
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">644</div>
+                <div class="box-table-item-text">50.3%</div>
+                <div class="box-table-item-text">2</div>
+              </div>
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">764</div>
+                <div class="box-table-item-text">31.4%</div>
+                <div class="box-table-item-text">3</div>
+              </div>
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">720</div>
+                <div class="box-table-item-text">10%</div>
+                <div class="box-table-item-text">19</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="box box-left" style=" right: 100px; top: 520px;" id="shanghai">
+      <div class="box-header">上海云CI</div>
+      <div class="box-content">
+        <div class="box-table">
+          <div class="box-table-content">
+            <div class="box-table-content-header">
+              <div class="box-table-content-title">资源(核)</div>
+              <div class="box-table-content-title">资源利用率</div>
+              <div class="box-table-content-title">已上线项目数</div>
+            </div>
+            <div class="box-table-content-main">
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">752</div>
+                <div class="box-table-item-text">40.4%</div>
+                <div class="box-table-item-text">44</div>
+              </div>
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">944</div>
+                <div class="box-table-item-text">7.2%</div>
+                <div class="box-table-item-text">5</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="box box-left" style="right: 100px; top: 20px;" id="njTest">
+      <div class="box-header" style="color: #ddb926">南京云测试</div>
+      <div class="box-content">
+        <div class="box-table">
+          <div class="box-table-content">
+            <div class="box-table-content-header">
+              <div class="box-table-content-title">资源(核)</div>
+              <div class="box-table-content-title">资源利用率</div>
+              <div class="box-table-content-title">已上线项目数</div>
+            </div>
+            <div class="box-table-content-main">
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">80</div>
+                <div class="box-table-item-text">80%</div>
+                <div class="box-table-item-text">1</div>
+              </div>
+              <div class="box-table-content-main-item">
+                <div class="box-table-item-text">300</div>
+                <div class="box-table-item-text">50%</div>
+                <div class="box-table-item-text">2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="box box-left" style="width: 310px; right: 100px; top: 260px;" id="nanjing">
+      <div class="box-single-title box-header">
+        <img src="./images/mapIcon.png">
+        <span>南京云CI</span>
+      </div>
+      <div class="box-single-content">
+        <div class="box-single-item">
+          <label>796</label>
+          <span>资源(核)</span>
+        </div>
+        <div class="box-single-item">
+          <label>68.8%</label>
+          <span>资源利用率</span>
+        </div>
+        <div class="box-single-item full-width">
+          <label>49</label>
+          <span>已上线项目数</span>
+        </div>
+      </div>
+    </div>
+    <div class="box box-right" style="width: 310px; left: 100px; bottom: 100px;" id="shenzheng">
+      <div class="box-single-title box-header">
+        <img src="./images/mapIcon.png">
+        <span>深圳云CI</span>
+      </div>
+      <div class="box-single-content">
+        <div class="box-single-item">
+          <label>700</label>
+          <span>资源(核)</span>
+        </div>
+        <div class="box-single-item">
+          <label>34.8%</label>
+          <span>资源利用率</span>
+        </div>
+        <div class="box-single-item full-width">
+          <label>71</label>
+          <span>已上线项目数</span>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript" src="juicer-min.js"></script>
+  <script type="text/javascript" src="echarts.min.js"></script>
+  <script type="text/javascript" src="china.js"></script>
+  <script id="tpl" type="text/template">
+    {@each list as it,index}
+      <div class="box-single-title box-header">
+        <img src="./images/mapIcon.png">
+        <span>${name}</span>
+      </div>
+      <div class="box-single-content">
+        <div class="box-single-item">
+          <label>199</label>
+          <span>资源数(虚机)</span>
+        </div>
+        <div class="box-single-item">
+          <label>199</label>
+          <span>资源数(虚机)</span>
+        </div>
+        <div class="box-single-item">
+          <label>199</label>
+          <span>资源数(虚机)</span>
+        </div>
+        <div class="box-single-item">
+          <label>199</label>
+          <span>资源数(虚机)</span>
+        </div>
+      </div>
+    {@/each}
+  </script>
+  <script type="text/javascript">
+    var geoCoordMap = {
+      '上海':[121.48,31.22],
+      '深圳':[114.07,22.62],
+      '三亚':[109.511909,18.252847],
+      '重庆':[106.54,29.59],
+      '南京':[118.78,32.04],
+      '北京':[116.46,39.92],
+      '长沙':[113,28.21],
+      '武汉':[114.31,30.52],
+      '成都':[104.06,30.67],
+      '西安':[108.95,34.27]
+    };
+    var data = [
+      {
+        name: '南京', 
+        value: 100, 
+        data: [{
+          resourceNum: 199,
+          ratio: 137,
+          projectNum: 49
+        }],
+        warnNum: 0
+      },
+      {
+        name: '西安', 
+        value: 100,
+        data: [{
+          resourceNum: 212,
+          ratio: 200,
+          projectNum: 3
+        }],
+        warnNum: 0
+      },
+      {name: '长沙', value: 50},
+      {name: '武汉', value: 50},
+      {
+        name: '上海', 
+        value: 80,
+        data: [{
+          resourceNum: 188,
+          ratio: 76,
+          projectNum: 44
+        }],
+        warnNum: 1
+      },
+      {
+        name: '深圳', 
+        value: 100,
+        data: [{
+          resourceNum: 175,
+          ratio: 61,
+          projectNum: 71
+        }],
+        warnNum: 0
+      },
+      {name: '北京', value: 50},
+      {name: '三亚', value: 50},
+      {name: '成都', value: 50},
+      {name: '重庆', value: 50}
+    ];
+    var convertData = function (data) {
+      var res = [];
+      for (var i = 0; i < data.length; i++) {
+          var geoCoord = geoCoordMap[data[i].name];
+          if (geoCoord) {
+              res.push({
+                  name: data[i].name,
+                  value: geoCoord.concat(data[i].value),
+                  data: data[i].data,
+                  warnNum: data[i].warnNum
+              });
+          }
+      }
+      return res;
+    };
+    var errorData = [];
+    var notErrorData = [];
+    for(var i = 0, len = data.length; i < len; i++){
+      var obj = data[i];
+      if(obj.warnNum){
+        errorData.push(data[i]);
+      }else{
+        notErrorData.push(data[i]);
+      }
+    }
+    option = {
+      backgroundColor: '#2a323d',
+      title : {
+          text: '全国云CI、云测试分布图',
+          subtext: 'ZTE',
+          left: 'center',
+          textStyle : {
+              color: '#fff'
+          }
+      },
+      legend: {
+          orient: 'vertical',
+          top: 'bottom',
+          left: 'right',
+          textStyle: {
+              color: '#fff'
+          },
+          selectedMode: 'single'
+      },
+      geo: {
+          map: 'china',
+          label: {
+              emphasis: {
+                  show: false
+              }
+          },
+          roam: false,
+          itemStyle: {
+              normal: {
+                  areaColor: '#323c48',
+                  borderColor: '#404a59'
+              },
+              emphasis: {
+                  areaColor: '#2a333d'
+              }
+          }
+      },
+      series: [{
+            name: '云CI',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            hoverAnimation: true,
+            data: convertData(notErrorData),
+            symbolSize: function (val) {
+                return val[2] / 10;
+            },
+            label: {
+                normal: {
+                    formatter: '{b}',
+                    position: 'right',
+                    show: true
+                },
+                emphasis: {
+                    show: true
+                }
+            },
+            itemStyle: {
+                normal: {
+                    color: '#00d2ff'
+                }
+            }
+      },{
+            name: '云CI',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            hoverAnimation: true,
+            data: convertData(errorData),
+            symbolSize: function (val) {
+                return val[2] / 10;
+            },
+            label: {
+                normal: {
+                    formatter: '{b}',
+                    position: 'right',
+                    show: true
+                },
+                emphasis: {
+                    show: true
+                }
+            },
+            itemStyle: {
+                normal: {
+                    color: '#e6374c'
+                }
+            }
+      }]
+    };
+    var myChart = echarts.init(document.getElementById('china-map'));
+    myChart.setOption(option);
+    myChart.on('mouseover', function (params) {
+      return;
+      if(!params.data || !params.data.data){
+        return;
+      }
+      var x = params.event.event.clientX, y = params.event.event.clientY;
+      var body = document.getElementsByTagName('body')[0];
+      var tooltip = document.createElement('div');
+      var tpl = document.getElementById('tpl').innerHTML;
+      var data = {
+        list: [],
+        warnNum: params.data.warnNum,
+        name: params.data.name
+      };
+      for(var i = 0, len = params.data.data.length; i < len; i++){
+        data.list.push(params.data.data[i]);
+      }
+      var html = juicer(tpl, data);
+      tooltip.innerHTML = html;
+      tooltip.className = "tooltip box bottom-arrow";
+      tooltip.id = "tooltip";
+      body.appendChild(tooltip);
+      tooltip.style = 'width: 310px; left: ' + Math.abs(x - 310 / 2) + 'px; top: ' + (Math.abs(y - tooltip.offsetHeight) - 20) + 'px';
+    });
+    myChart.on('mouseout', function(params){
+      tooltipDestory('tooltip');
+    });
+    function tooltipDestory(name){
+      var tooltip = document.getElementById(name);
+      var body = document.getElementsByTagName('body')[0];
+      tooltip && body.removeChild(tooltip);
+    }
+    function initView(){
+      //获取城市坐标
+      var position = {
+        '西安': myChart.convertToPixel('geo', geoCoordMap['西安']),
+        '南京': myChart.convertToPixel('geo', geoCoordMap['南京']),
+        '深圳': myChart.convertToPixel('geo', geoCoordMap['深圳']),
+        '上海': myChart.convertToPixel('geo', geoCoordMap['上海'])
+      };
+      var xian = document.getElementById('xian');
+      var shanghai = document.getElementById('shanghai');
+      var nanjing = document.getElementById('nanjing');
+      var shenzheng = document.getElementById('shenzheng');
+      var njTest = document.getElementById('njTest');
+      
+      drawLine(position['西安'], [xian.offsetLeft + xian.offsetWidth, xian.offsetTop + (xian.offsetHeight / 2)], xian);
+      drawLine(position['上海'], [shanghai.offsetLeft, shanghai.offsetTop + (shanghai.offsetHeight / 2)], shanghai);
+      drawLine(position['南京'], [nanjing.offsetLeft, nanjing.offsetTop + (nanjing.offsetHeight / 2)], nanjing);
+      drawLine(position['深圳'], [shenzheng.offsetLeft + shenzheng.offsetWidth, shenzheng.offsetTop + (shenzheng.offsetHeight / 2)], shenzheng);
+      drawLine(position['南京'], [njTest.offsetLeft, njTest.offsetTop + (njTest.offsetHeight / 2)], njTest);
+    }
+    initView();
+    function drawLine (a, b, dom) {
+      var container = document.querySelector('body');
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.classList.add('path');
+      var abs = function(number){
+        return Math.abs(number);
+      };
+      function Position () {
+        this.x1 = a[0];
+        this.y1 = a[1];
+        this.x2 = b[0];
+        this.y2 = b[1];
+        this.overall_length_x = this.x1 - this.x2;
+        this.overall_length_y = this.y1 - this.y2;
+        this.halfWidth = this.overall_length_x / 2;
+      }
+      var p = new Position();
+      if (p.x1 > p.x2 && p.y1 > p.y2){
+        direction = 1;
+      }
+      if (p.x1 < p.x2 && p.y1 < p.y2) {
+        direction = 2;
+      }
+      if (p.x1 > p.x2 && p.y1 < p.y2) {
+        direction = 3;
+      }
+      if (p.x1 < p.x2 && p.y1 > p.y2) {
+        direction = 4;
+      }
+      var getPath = function() {
+        var s = {
+          move_to: function(x, y){
+            return ['M', x, ',', y, ' '].join('');
+          },
+          line_to: function(x, y){
+            return ['L', x, ',', y, ' '].join('');
+          },
+          arc: function(r, wise, x, y){
+            return ['A', r, ' ', r, ' 0 0,', wise, ' ', x, ',', y, ' '].join('');
+          }
+        };
+        var x1, y1, x2, y2, d;
+        switch(direction){
+          case 1:
+            x1 = p.overall_length_x, x2 = 0, y1 = p.overall_length_y, y2 = 0;
+            break;
+          case 2:
+            x1 = 0, y1 = 0, x2 = abs(p.overall_length_x), y2 = abs(p.overall_length_y);
+            break;
+          case 3:
+            x1 = abs(p.overall_length_x), y1 = 0, x2 = 0, y2 = abs(p.overall_length_y);
+            break;
+          case 4:
+            x1 = 0, x2 = abs(p.overall_length_x), y1 = abs(p.overall_length_y), y2 = 0;
+            break;
+          default:
+            break;
+        }
+        d = s.move_to(x1, y1);
+        d += s.line_to(abs(p.halfWidth), y2);
+        d += s.line_to(x2, y2); 
+        var c = {
+          x: x2,
+          y: y2
+        }
+        return [d, c];
+      };
+      var svgWidth = p.overall_length_x;
+      var svgHeight = p.overall_length_y;
+      var left = svgWidth > 0 ? p.x2 : p.x1;
+      var top  = svgHeight> 0 ? p.y2 : p.y1;
+      path.setAttribute('d', getPath()[0]);
+      var len = path.getTotalLength()
+      svgWidth = abs(svgWidth);
+      svgHeight = abs(svgHeight);
+      svg.style = "position: absolute; width: " + svgWidth + "px; height: " + svgHeight + "px;" + 'left: ' + left + 'px; top:' + top + 'px;fill:none; stroke-dasharray: ' + len + '; stroke-dashoffset: ' + len;
+      path.style =  'stroke-width: 1;stroke: #00d2ff;';
+      svg.appendChild(path);
+      container.appendChild(svg);
+      dom.classList.add('box-active');
+    }
+  </script>
+</html>
